@@ -1,0 +1,6 @@
+(library
+ ((name topological_sort)
+  (public_name topological_sort)
+  (libraries (core_kernel))))
+
+(enforce_style ())
