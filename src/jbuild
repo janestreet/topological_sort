@@ -1,8 +1,8 @@
 (library
  ((name topological_sort)
   (public_name topological_sort)
-  (libraries (core_kernel))))
+  (libraries (core_kernel))
+  (preprocess (pps (ppx_jane)))))
 
-(enforce_style ())
 
 (jbuild_version jane_street)
