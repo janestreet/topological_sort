@@ -153,59 +153,6 @@ let sort
   result
 ;;
 
-let%test_module _ =
-  (module struct
-    let test
-          (type node)
-          (module Node : Node with type t = node)
-          nodes
-          edges =
-      let result = sort (module Node) nodes edges in
-      check_result (module Node) nodes edges result
-    ;;
-
-    module Node = Int
-
-    let%test_unit "nodes, but no edges" =
-      test (module Node) [ 1 ] []
-    ;;
-
-    let%test_unit "basic graphs" =
-      List.iter
-        [ []
-        ; [ 1,2 ]
-        ; [ 1,2; 2,3 ]
-        ; [ 2,3; 1,2 ]
-        ; [ 1,2; 1,3 ]
-        ; [ 1,2; 1,3; 2,3 ]
-        ; [ 1,2; 2,3; 1,3 ]
-        ; [ 1,1 ]
-        ; [ 1,2; 2,1 ]
-        ; [ 1,2; 2,3; 3,1 ] ]
-        ~f:(fun edges ->
-          let edges =
-            List.map edges ~f:(fun (from, to_) -> { Edge. from; to_ })
-          in
-          test (module Node) [] edges)
-    ;;
-
-    let%test_unit "all graphs with 5 or fewer nodes" =
-      for num_nodes = 0 to 5 do
-        let rec loop from edges =
-          if from = 0
-          then test (module Node) [] edges
-          else
-            for to_ = 1 to num_nodes do
-              loop (from - 1) ({ from; to_ } :: edges);
-              loop (from - 1) edges;
-            done
-        in
-        loop num_nodes [];
-      done
-    ;;
-  end)
-;;
-
 let sort (type node) ?verbose (module Node : Node with type t = node) nodes edges =
   match sort ?verbose (module Node) nodes edges with
   | Ok _ as x -> x
