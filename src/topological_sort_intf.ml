@@ -24,7 +24,7 @@ module type Topological_sort = sig
       - every node that appears in [nodes] or [edges] occurs once in [output].
       - if [{ from; to_ }] is in [edges], then [from] occurs before [to_] in [output].
       - nodes that have no incoming or outgoing edges appear sorted at the end of
-      [output].
+        [output].
 
       [sort] returns [Error] if there is a cycle. *)
   val sort
