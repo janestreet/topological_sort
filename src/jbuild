@@ -2,8 +2,8 @@
  ((name topological_sort)
   (public_name topological_sort)
   (flags (:standard -safe-string))
-  (libraries (core_kernel))
-  (preprocess (pps (ppx_jane ppx_driver.runner)))
+  (libraries (base stdio))
+  (preprocess (pps (ppx_jane ppxlib.runner)))
 ))
 
 

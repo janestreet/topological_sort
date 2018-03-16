@@ -1,4 +1,3 @@
-open! Core_kernel
 open! Import
 
 include Topological_sort_intf
@@ -28,25 +27,24 @@ let check_result
     | Ok sorted ->
       let index_by_node =
         List.mapi sorted ~f:(fun i node -> (node, i))
-        |> Node.Table.of_alist_exn
+        |> Hashtbl.of_alist_exn (module Node)
       in
       let index_of node =
         match Hashtbl.find index_by_node node with
         | Some i -> i
-        | None -> failwiths "sort output missing node" node [%sexp_of: Node.t];
+        | None -> raise_s [%message "sort output missing node" ~_:(node : Node.t)];
       in
       List.iter nodes ~f:(fun node -> ignore (index_of node : int));
       List.iter edges ~f:(fun edge ->
         if index_of edge.from >= index_of edge.to_
-        then failwiths "sort output did not respect edge" edge
-               [%sexp_of: Node.t Edge.t]);
+        then raise_s [%message "sort output did not respect edge" ~_:(edge : Node.t Edge.t)]);
     | Error cycle ->
       (match cycle with
        | [] -> failwith "cycle unexpectedly empty"
        | first :: rest ->
          let assert_edge edge =
            if not (List.mem edges edge ~equal:(Edge.equal Node.equal))
-           then failwiths "missing edge" edge [%sexp_of: Node.t Edge.t];
+           then raise_s [%message "missing edge" ~_:(edge : Node.t Edge.t)];
          in
          let rec check_cycle node rest =
            match rest with
@@ -97,7 +95,7 @@ let sort
     let rec visit t ~visiting ~visited =
       if verbose
       then
-        Debug.eprint_s
+        eprint_s
           [%sexp
             "visit",
             [%here],
@@ -124,7 +122,7 @@ let sort
         t.node :: visited
     ;;
   end in
-  let info_by_node = Node.Table.create () in
+  let info_by_node = Hashtbl.create (module Node) in
   let node_info node =
     Hashtbl.find_or_add info_by_node node ~default:(fun () -> Node_info.create node)
   in
@@ -135,7 +133,7 @@ let sort
      of the topsort output.  Sorting also makes the output deterministic. *)
   let node_visit_order =
     Hashtbl.data info_by_node
-    |> List.sort ~cmp:(fun (n1 : Node_info.t) n2 ->
+    |> List.sort ~compare:(fun (n1 : Node_info.t) n2 ->
       match Node_info.is_isolated n1, Node_info.is_isolated n2 with
       | true , false -> -1
       | false, true  -> 1
@@ -157,5 +155,5 @@ let sort (type node) ?verbose (module Node : Node with type t = node) nodes edge
   match sort ?verbose (module Node) nodes edges with
   | Ok _ as x -> x
   | Error cycle ->
-    error "Topological_sort.sort encountered cycle" cycle [%sexp_of: Node.t list]
+    error_s [%message "Topological_sort.sort encountered cycle" ~_:(cycle : Node.t list)]
 ;;

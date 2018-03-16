@@ -1,11 +1,10 @@
-open! Core_kernel
 open! Import
 
 module type Node = sig
   type t [@@deriving sexp_of]
 
-  include Equal.S          with type t := t
-  include Hashable.S_plain with type t := t
+  include Equal.S     with type t := t
+  include Hashtbl.Key with type t := t
 end
 
 module type Topological_sort = sig
