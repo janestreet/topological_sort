@@ -1,18 +1,17 @@
 open! Import
 open! Topological_sort
-
 module Node = Core_kernel.Int
 
 let test ?(should_print = true) ?(nodes = []) edges =
-  let edges = List.map edges ~f:(fun (from, to_) -> { Edge. from; to_ }) in
+  let edges = List.map edges ~f:(fun (from, to_) -> { Edge.from; to_ }) in
   let result = sort (module Node) nodes edges in
-  if should_print then print_s [%sexp (result : Node.t list Or_error.t)];
+  if should_print then print_s [%sexp (result : Node.t list Or_error.t)]
 ;;
 
 let%expect_test "nodes, but no edges" =
   test ~nodes:[ 1 ] [];
   [%expect {|
-    (Ok (1)) |}];
+    (Ok (1)) |}]
 ;;
 
 let%expect_test "basic graphs" =
@@ -45,11 +44,12 @@ let%expect_test "basic graphs" =
     (Error ("Topological_sort.sort encountered cycle" (2 1))) |}];
   test [ 1, 2; 2, 3; 3, 1 ];
   [%expect {|
-    (Error ("Topological_sort.sort encountered cycle" (3 1 2))) |}];
+    (Error ("Topological_sort.sort encountered cycle" (3 1 2))) |}]
 ;;
 
-let%expect_test "\
-after respecting the order, follows [Node.compare] with isolated nodes at the end" =
+let%expect_test "after respecting the order, follows [Node.compare] with isolated nodes \
+                 at the end"
+  =
   let nodes = [ 4; 3; 2; 1 ] in
   let test = test ~nodes in
   test [];
@@ -69,7 +69,7 @@ after respecting the order, follows [Node.compare] with isolated nodes at the en
     (Ok (2 3 1 4)) |}];
   test [ 3, 4; 1, 2 ];
   [%expect {|
-    (Ok (1 2 3 4)) |}];
+    (Ok (1 2 3 4)) |}]
 ;;
 
 let%expect_test "all graphs with 5 or fewer nodes" =
@@ -83,12 +83,12 @@ let%expect_test "all graphs with 5 or fewer nodes" =
       else
         for to_ = 1 to num_nodes do
           loop (from - 1) ((from, to_) :: edges);
-          loop (from - 1) edges;
+          loop (from - 1) edges
         done
     in
-    loop num_nodes [];
+    loop num_nodes []
   done;
   print_s [%message (num_tests_run : int ref)];
   [%expect {|
-    (num_tests_run 104331) |}];
+    (num_tests_run 104331) |}]
 ;;
