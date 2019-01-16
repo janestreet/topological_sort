@@ -1,9 +1,0 @@
-(library
- ((name topological_sort)
-  (public_name topological_sort)
-  (libraries (base stdio))
-  (preprocess (pps (ppx_jane ppxlib.runner)))
-))
-
-
-(jbuild_version 1)
