@@ -4,7 +4,7 @@ module type Node = sig
   type t [@@deriving sexp_of]
 
   include Equal.S with type t := t
-  include Hashtbl.Key with type t := t
+  include Hashtbl.Key.S with type t := t
 end
 
 module type Topological_sort = sig
