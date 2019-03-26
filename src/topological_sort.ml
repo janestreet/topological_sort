@@ -84,7 +84,7 @@ let sort
       { node : Node.t
       ; mutable state : state
       ; mutable num_incoming : int
-      ; mutable outgoing : t sexp_opaque list
+      ; mutable outgoing : (t[@sexp.opaque]) list
       }
     [@@deriving sexp_of]
 
