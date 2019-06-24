@@ -144,8 +144,7 @@ let sort
       match Node_info.is_isolated n1, Node_info.is_isolated n2 with
       | true, false -> -1
       | false, true -> 1
-      | false, false
-      | true, true -> Node.compare n2.node n1.node)
+      | false, false | true, true -> Node.compare n2.node n1.node)
   in
   let result =
     match
