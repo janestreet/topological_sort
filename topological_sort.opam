@@ -14,7 +14,7 @@ depends: [
   "base"
   "ppx_jane"
   "stdio"
-  "dune"     {build & >= "1.5.1"}
+  "dune"     {>= "1.5.1"}
 ]
 synopsis: "Topological sort algorithm"
 description: "
