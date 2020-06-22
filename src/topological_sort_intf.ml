@@ -18,9 +18,19 @@ module type Topological_sort = sig
     [@@deriving sexp_of]
   end
 
-  (** [sort (module Node) nodes edges] returns a list of nodes [output] satisfying:
+  module What : sig
+    type t =
+      | Nodes
+      | Nodes_and_edge_endpoints
+    [@@deriving sexp_of]
+  end
 
-      - every node that appears in [nodes] or [edges] occurs once in [output].
+  (** [sort (module Nodes) ~what ~nodes ~edges] returns a list of nodes [output]
+      satisfying:
+
+      - [output] contains one occurrence of every node in [nodes] when [what = Nodes],
+        or one occurrence of every node in [nodes] and [edges] when
+        [what = Nodes_and_edge_endpoints].
       - if [{ from; to_ }] is in [edges], then [from] occurs before [to_] in [output].
       - nodes that have no incoming or outgoing edges appear sorted at the end of
         [output].
@@ -29,7 +39,8 @@ module type Topological_sort = sig
   val sort
     :  ?verbose:bool (** default is [false] *)
     -> (module Node with type t = 'node)
-    -> 'node list
-    -> 'node Edge.t list
+    -> what:What.t
+    -> nodes:'node list
+    -> edges:'node Edge.t list
     -> 'node list Or_error.t
 end

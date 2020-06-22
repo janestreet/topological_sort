@@ -1,4 +1,4 @@
 include Base
-include Expect_test_helpers_core
+include Expect_test_helpers_base
 
 let incr = Int.incr

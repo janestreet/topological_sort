@@ -12,6 +12,13 @@ module Edge = struct
   let map t ~f = { from = f t.from; to_ = f t.to_ }
 end
 
+module What = struct
+  type t =
+    | Nodes
+    | Nodes_and_edge_endpoints
+  [@@deriving sexp_of]
+end
+
 let check_result
       (type node)
       (module Node : Node with type t = node)
@@ -68,8 +75,9 @@ let sort
       (type node)
       ?(verbose = false)
       (module Node : Node with type t = node)
-      (nodes : node list)
-      (edges : node Edge.t list)
+      ~(what : What.t)
+      ~(nodes : node list)
+      ~(edges : node Edge.t list)
   =
   let module Node_info = struct
     exception Cycle of node list
@@ -155,12 +163,13 @@ let sort
     | exception Node_info.Cycle cycle -> Error cycle
   in
   check_result (module Node) nodes edges result;
-  result
-;;
-
-let sort (type node) ?verbose (module Node : Node with type t = node) nodes edges =
-  match sort ?verbose (module Node) nodes edges with
-  | Ok _ as x -> x
+  match result with
+  | Ok list as ok ->
+    (match what with
+     | Nodes_and_edge_endpoints -> ok
+     | Nodes ->
+       let keep = Hash_set.of_list (module Node) nodes in
+       Ok (List.filter list ~f:(Hash_set.mem keep)))
   | Error cycle ->
     error_s [%message "Topological_sort.sort encountered cycle" ~_:(cycle : Node.t list)]
 ;;
