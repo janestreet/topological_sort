@@ -1,4 +1,3 @@
-#+UUID: 7b65be63-7309-3202-846a-4cccf0b878a0
 
 * Topological_sort
 
