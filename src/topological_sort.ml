@@ -71,7 +71,7 @@ let check_result
         }]
 ;;
 
-let sort
+let sort_or_cycle
       (type node)
       ?(verbose = false)
       (module Node : Node with type t = node)
@@ -170,6 +170,14 @@ let sort
      | Nodes ->
        let keep = Hash_set.of_list (module Node) nodes in
        Ok (List.filter list ~f:(Hash_set.mem keep)))
-  | Error cycle ->
+  | Error cycle -> Error (`Cycle cycle)
+;;
+
+let sort (type node) ?verbose (module Node : Node with type t = node) ~what ~nodes ~edges =
+  match
+    sort_or_cycle ?verbose (module Node : Node with type t = node) ~what ~nodes ~edges
+  with
+  | Ok result -> Ok result
+  | Error (`Cycle cycle) ->
     error_s [%message "Topological_sort.sort encountered cycle" ~_:(cycle : Node.t list)]
 ;;

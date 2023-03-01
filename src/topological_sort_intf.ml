@@ -43,4 +43,13 @@ module type Topological_sort = sig
     -> nodes:'node list
     -> edges:'node Edge.t list
     -> 'node list Or_error.t
+
+  (** Same as [sort], but returns the cycle if there is one. *)
+  val sort_or_cycle
+    :  ?verbose:bool (** default is [false] *)
+    -> (module Node with type t = 'node)
+    -> what:What.t
+    -> nodes:'node list
+    -> edges:'node Edge.t list
+    -> ('node list, [ `Cycle of 'node list ]) Result.t
 end
