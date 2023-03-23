@@ -41,8 +41,7 @@ let check_result
       List.iter edges ~f:(fun edge ->
         if index_of edge.from >= index_of edge.to_
         then
-          raise_s
-            [%message "sort output did not respect edge" ~_:(edge : Node.t Edge.t)])
+          raise_s [%message "sort output did not respect edge" ~_:(edge : Node.t Edge.t)])
     | Error cycle ->
       (match cycle with
        | [] -> failwith "cycle unexpectedly empty"
