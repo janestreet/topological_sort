@@ -20,11 +20,11 @@ module What = struct
 end
 
 let check_result
-      (type node)
-      (module Node : Node with type t = node)
-      nodes
-      (edges : Node.t Edge.t list)
-      result
+  (type node)
+  (module Node : Node with type t = node)
+  nodes
+  (edges : Node.t Edge.t list)
+  result
   =
   try
     match result with
@@ -63,20 +63,20 @@ let check_result
     raise_s
       [%sexp
         "Topological_sort detected bug"
-      , { exn : exn
-        ; result : (Node.t list, Node.t list) Result.t
-        ; nodes : Node.t list
-        ; edges : Node.t Edge.t list
-        }]
+        , { exn : exn
+          ; result : (Node.t list, Node.t list) Result.t
+          ; nodes : Node.t list
+          ; edges : Node.t Edge.t list
+          }]
 ;;
 
 let sort_or_cycle
-      (type node)
-      ?(verbose = false)
-      (module Node : Node with type t = node)
-      ~(what : What.t)
-      ~(nodes : node list)
-      ~(edges : node Edge.t list)
+  (type node)
+  ?(verbose = false)
+  (module Node : Node with type t = node)
+  ~(what : What.t)
+  ~(nodes : node list)
+  ~(edges : node Edge.t list)
   =
   let module Node_info = struct
     exception Cycle of node list
@@ -113,8 +113,8 @@ let sort_or_cycle
         eprint_s
           [%sexp
             "visit"
-          , [%here]
-          , { node = (t.node : Node.t); visiting : Node.t list; visited : Node.t list }];
+            , [%here]
+            , { node = (t.node : Node.t); visiting : Node.t list; visited : Node.t list }];
       match t.state with
       | Visited -> visited
       | Visiting ->
@@ -148,10 +148,10 @@ let sort_or_cycle
   let node_visit_order =
     Hashtbl.data info_by_node
     |> List.sort ~compare:(fun (n1 : Node_info.t) n2 ->
-      match Node_info.is_isolated n1, Node_info.is_isolated n2 with
-      | true, false -> -1
-      | false, true -> 1
-      | false, false | true, true -> Node.compare n2.node n1.node)
+         match Node_info.is_isolated n1, Node_info.is_isolated n2 with
+         | true, false -> -1
+         | false, true -> 1
+         | false, false | true, true -> Node.compare n2.node n1.node)
   in
   let result =
     match

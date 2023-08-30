@@ -3,10 +3,10 @@ open! Topological_sort
 module Node = Int
 
 let test
-      ?(should_print = true)
-      ?(what = What.Nodes_and_edge_endpoints)
-      ?(nodes = [])
-      edges
+  ?(should_print = true)
+  ?(what = What.Nodes_and_edge_endpoints)
+  ?(nodes = [])
+  edges
   =
   let edges = List.map edges ~f:(fun (from, to_) -> { Edge.from; to_ }) in
   let result = sort (module Node) ~nodes ~edges ~what in
