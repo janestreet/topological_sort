@@ -18,6 +18,19 @@ module type Topological_sort = sig
     [@@deriving sexp_of]
   end
 
+  (** Controls the order in which we begin traversing nodes as entry points into the
+      graph. The earliest nodes with finished traversals are returned last. *)
+  module Traversal_order : sig
+    type t =
+      | Decreasing_order (** Process in decreasing order of [Node.compare]. *)
+      | Decreasing_order_with_isolated_nodes_first
+          (** Process isolated nodes -- those without edges -- first, and then the rest. Both
+          groups go in decreasing order of [Node.compare]. *)
+      | Unspecified
+          (** Allows an implementation-specific, unspecified order. Order may be unstable
+          and/or nondeterministic. Provides best performance. *)
+  end
+
   module What : sig
     type t =
       | Nodes
@@ -32,12 +45,18 @@ module type Topological_sort = sig
         or one occurrence of every node in [nodes] and [edges] when
         [what = Nodes_and_edge_endpoints].
       - if [{ from; to_ }] is in [edges], then [from] occurs before [to_] in [output].
-      - nodes that have no incoming or outgoing edges appear sorted at the end of
-        [output].
 
-      [sort] returns [Error] if there is a cycle. *)
+      [sort] returns [Error] if there is a cycle.
+
+      [traversal_order] determines the order in which we processing nodes as entry points
+      into the graph.
+
+      [verify] checks that the sorted output or generated cycle is indeed correct. *)
   val sort
-    :  ?verbose:bool (** default is [false] *)
+    :  ?traversal_order:Traversal_order.t
+         (** default is [Decreasing_order_with_isolated_nodes_first] *)
+    -> ?verbose:bool (** default is [false] *)
+    -> ?verify:bool (** default is [true] *)
     -> (module Node with type t = 'node)
     -> what:What.t
     -> nodes:'node list
@@ -46,7 +65,10 @@ module type Topological_sort = sig
 
   (** Same as [sort], but returns the cycle if there is one. *)
   val sort_or_cycle
-    :  ?verbose:bool (** default is [false] *)
+    :  ?traversal_order:Traversal_order.t
+         (** default is [Decreasing_order_with_isolated_nodes_first] *)
+    -> ?verbose:bool (** default is [false] *)
+    -> ?verify:bool (** default is [true] *)
     -> (module Node with type t = 'node)
     -> what:What.t
     -> nodes:'node list

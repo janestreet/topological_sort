@@ -12,6 +12,13 @@ module Edge = struct
   let map t ~f = { from = f t.from; to_ = f t.to_ }
 end
 
+module Traversal_order = struct
+  type t =
+    | Decreasing_order
+    | Decreasing_order_with_isolated_nodes_first
+    | Unspecified
+end
+
 module What = struct
   type t =
     | Nodes
@@ -72,7 +79,9 @@ let check_result
 
 let sort_or_cycle
   (type node)
+  ?(traversal_order = Traversal_order.Decreasing_order_with_isolated_nodes_first)
   ?(verbose = false)
+  ?(verify = true)
   (module Node : Node with type t = node)
   ~(what : What.t)
   ~(nodes : node list)
@@ -93,7 +102,7 @@ let sort_or_cycle
       ; mutable num_incoming : int
       ; mutable outgoing : (t[@sexp.opaque]) list
       }
-    [@@deriving sexp_of]
+    [@@deriving fields ~getters, sexp_of]
 
     let create node = { node; state = Unvisited; num_incoming = 0; outgoing = [] }
 
@@ -142,16 +151,22 @@ let sort_or_cycle
   in
   List.iter nodes ~f:(fun node -> ignore (node_info node : Node_info.t));
   List.iter edges ~f:(fun edge -> Node_info.add_edge (Edge.map edge ~f:node_info));
-  (* We sort the nodes with isolated nodes before other nodes, and then in decreasing
-     order of [Node.compare].  This visits isolated nodes first, putting them at the end
-     of the topsort output.  Sorting also makes the output deterministic. *)
   let node_visit_order =
-    Hashtbl.data info_by_node
-    |> List.sort ~compare:(fun (n1 : Node_info.t) n2 ->
-         match Node_info.is_isolated n1, Node_info.is_isolated n2 with
-         | true, false -> -1
-         | false, true -> 1
-         | false, false | true, true -> Node.compare n2.node n1.node)
+    match traversal_order with
+    | Unspecified -> Hashtbl.data info_by_node
+    | Decreasing_order ->
+      Hashtbl.data info_by_node
+      |> List.sort
+           ~compare:(Comparable.lift Node.compare ~f:Node_info.node |> Comparable.reverse)
+    | Decreasing_order_with_isolated_nodes_first ->
+      Hashtbl.data info_by_node
+      |> List.sort
+           ~compare:
+             (Comparable.lexicographic
+                [ Comparable.lift Bool.compare ~f:Node_info.is_isolated
+                ; Comparable.lift Node.compare ~f:Node_info.node
+                ]
+              |> Comparable.reverse)
   in
   let result =
     match
@@ -161,7 +176,7 @@ let sort_or_cycle
     | visited -> Ok visited
     | exception Node_info.Cycle cycle -> Error cycle
   in
-  check_result (module Node) nodes edges result;
+  if verify then check_result (module Node) nodes edges result;
   match result with
   | Ok list as ok ->
     (match what with
@@ -172,9 +187,25 @@ let sort_or_cycle
   | Error cycle -> Error (`Cycle cycle)
 ;;
 
-let sort (type node) ?verbose (module Node : Node with type t = node) ~what ~nodes ~edges =
+let sort
+  (type node)
+  ?traversal_order
+  ?verbose
+  ?verify
+  (module Node : Node with type t = node)
+  ~what
+  ~nodes
+  ~edges
+  =
   match
-    sort_or_cycle ?verbose (module Node : Node with type t = node) ~what ~nodes ~edges
+    sort_or_cycle
+      ?traversal_order
+      ?verbose
+      ?verify
+      (module Node : Node with type t = node)
+      ~what
+      ~nodes
+      ~edges
   with
   | Ok result -> Ok result
   | Error (`Cycle cycle) ->
