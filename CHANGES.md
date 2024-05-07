@@ -1,3 +1,14 @@
+## Release v0.17.0
+
+- Introduce `Topological_sort.Traversal_order` module with traversal order options:
+  * `Decreasing_order`
+  * `Decreasing_order_with_isolated_nodes_first`
+  * `Unspecified` for performance optimization
+
+- Update `Topological_sort.sort` and `Topological_sort.sort_or_cycle` functions:
+  * Add optional `traversal_order` parameter with default `Decreasing_order_with_isolated_nodes_first`
+  * Introduce optional `verify` parameter with default `true`
+
 ## Release v0.16.0
 
 - Add new function:
