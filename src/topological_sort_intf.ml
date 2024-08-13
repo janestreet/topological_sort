@@ -24,10 +24,10 @@ module type Topological_sort = sig
     type t =
       | Decreasing_order (** Process in decreasing order of [Node.compare]. *)
       | Decreasing_order_with_isolated_nodes_first
-          (** Process isolated nodes -- those without edges -- first, and then the rest. Both
+      (** Process isolated nodes -- those without edges -- first, and then the rest. Both
           groups go in decreasing order of [Node.compare]. *)
       | Unspecified
-          (** Allows an implementation-specific, unspecified order. Order may be unstable
+      (** Allows an implementation-specific, unspecified order. Order may be unstable
           and/or nondeterministic. Provides best performance. *)
   end
 
