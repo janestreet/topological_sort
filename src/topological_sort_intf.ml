@@ -41,8 +41,8 @@ module type Topological_sort = sig
   (** [sort (module Nodes) ~what ~nodes ~edges] returns a list of nodes [output]
       satisfying:
 
-      - [output] contains one occurrence of every node in [nodes] when [what = Nodes],
-        or one occurrence of every node in [nodes] and [edges] when
+      - [output] contains one occurrence of every node in [nodes] when [what = Nodes], or
+        one occurrence of every node in [nodes] and [edges] when
         [what = Nodes_and_edge_endpoints].
       - if [{ from; to_ }] is in [edges], then [from] occurs before [to_] in [output].
 
