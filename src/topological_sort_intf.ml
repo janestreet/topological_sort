@@ -24,10 +24,10 @@ module type Topological_sort = sig
     type t =
       | Decreasing_order (** Process in decreasing order of [Node.compare]. *)
       | Decreasing_order_with_isolated_nodes_first
-          (** Process isolated nodes -- those without edges -- first, and then the rest. Both
+      (** Process isolated nodes -- those without edges -- first, and then the rest. Both
           groups go in decreasing order of [Node.compare]. *)
       | Unspecified
-          (** Allows an implementation-specific, unspecified order. Order may be unstable
+      (** Allows an implementation-specific, unspecified order. Order may be unstable
           and/or nondeterministic. Provides best performance. *)
   end
 
@@ -41,8 +41,8 @@ module type Topological_sort = sig
   (** [sort (module Nodes) ~what ~nodes ~edges] returns a list of nodes [output]
       satisfying:
 
-      - [output] contains one occurrence of every node in [nodes] when [what = Nodes],
-        or one occurrence of every node in [nodes] and [edges] when
+      - [output] contains one occurrence of every node in [nodes] when [what = Nodes], or
+        one occurrence of every node in [nodes] and [edges] when
         [what = Nodes_and_edge_endpoints].
       - if [{ from; to_ }] is in [edges], then [from] occurs before [to_] in [output].
 
