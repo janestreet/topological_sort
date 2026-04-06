@@ -6,7 +6,7 @@ module Edge = struct
     { from : 'a
     ; to_ : 'a
     }
-  [@@deriving compare, sexp_of]
+  [@@deriving compare ~localize, sexp_of]
 
   let equal equal_a t1 t2 = equal_a t1.from t2.from && equal_a t1.to_ t2.to_
   let map t ~f = { from = f t.from; to_ = f t.to_ }

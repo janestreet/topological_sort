@@ -1,9 +1,9 @@
 open! Import
 
-module type Node = sig
+module type%template [@mode m = (local, global)] Node = sig
   type t [@@deriving sexp_of]
 
-  include Equal.S with type t := t
+  include Equal.S [@mode m] with type t := t
   include Hashtbl.Key.S with type t := t
 end
 
