@@ -17,7 +17,7 @@ depends: [
   "stdio"
   "dune"     {>= "3.17.0"}
 ]
-available: arch != "arm32" & arch != "x86_32"
+available: arch != "x86_32"
 synopsis: "Topological sort algorithm"
 description: "
 Topological_sort is a single-module library that implements a simple
