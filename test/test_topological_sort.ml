@@ -3,14 +3,27 @@ open! Topological_sort
 module Node = Int
 
 let test
-  ?(should_print = true)
+  ?(should_print_result = true)
+  ?(should_print_on_visit = false)
   ?(what = What.Nodes_and_edge_endpoints)
   ?(nodes = [])
   edges
   =
   let edges = List.map edges ~f:(fun (from, to_) -> { Edge.from; to_ }) in
-  let result = sort (module Node) ~nodes ~edges ~what in
-  if should_print then print_s [%sexp (result : Node.t list Or_error.t)]
+  let result =
+    let on_visit =
+      if should_print_on_visit
+      then
+        fun visit ->
+        print_s
+          ~hide_positions:true
+          ~sexp_style:To_string_hum
+          [%sexp (visit : Node.t Visit.t)]
+      else ignore
+    in
+    sort ~on_visit (module Node) ~nodes ~edges ~what
+  in
+  if should_print_result then print_s [%sexp (result : Node.t list Or_error.t)]
 ;;
 
 let%expect_test "nodes, but no edges" =
@@ -77,13 +90,54 @@ let%expect_test "include only nodes in the result" =
   ()
 ;;
 
+let%expect_test "verbose" =
+  let test = test ~should_print_on_visit:true in
+  test ~nodes:[ 1 ] [];
+  [%expect
+    {|
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 1) (visiting ()) (visited ())))
+    (Ok (1))
+    |}];
+  test [ 1, 2; 1, 3; 2, 3 ];
+  [%expect
+    {|
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 3) (visiting ()) (visited ())))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 2) (visiting ()) (visited (3))))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 3) (visiting (2)) (visited (3))))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 1) (visiting ()) (visited (2 3))))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 3) (visiting (1)) (visited (2 3))))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 2) (visiting (1)) (visited (2 3))))
+    (Ok (1 2 3))
+    |}];
+  test [ 1, 2; 2, 3; 3, 1 ];
+  [%expect
+    {|
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 3) (visiting ()) (visited ())))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 1) (visiting (3)) (visited ())))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 2) (visiting (1 3)) (visited ())))
+    (visit lib/topological_sort/src/topological_sort.ml:LINE:COL
+     ((node 3) (visiting (2 1 3)) (visited ())))
+    (Error ("Topological_sort.sort encountered cycle" (3 1 2)))
+    |}]
+;;
+
 let%expect_test "all graphs with 5 or fewer nodes" =
   let num_tests_run = ref 0 in
   for num_nodes = 0 to 5 do
     let rec loop from edges =
       if from = 0
       then (
-        test edges ~should_print:false;
+        test edges ~should_print_result:false;
         incr num_tests_run)
       else
         for to_ = 1 to num_nodes do

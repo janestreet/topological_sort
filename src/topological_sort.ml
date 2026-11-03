@@ -6,7 +6,7 @@ module Edge = struct
     { from : 'a
     ; to_ : 'a
     }
-  [@@deriving compare ~localize, sexp_of]
+  [@@deriving compare, sexp_of]
 
   let equal equal_a t1 t2 = equal_a t1.from t2.from && equal_a t1.to_ t2.to_
   let map t ~f = { from = f t.from; to_ = f t.to_ }
@@ -24,6 +24,19 @@ module What = struct
     | Nodes
     | Nodes_and_edge_endpoints
   [@@deriving sexp_of]
+end
+
+module Visit = struct
+  type 'node t =
+    { node : 'node
+    ; visiting : 'node list
+    ; visited : 'node list
+    }
+  [@@deriving sexp_of]
+
+  let sexp_of_t (type node) (sexp_of_node : node -> Sexp.t) (t : node t) =
+    [%sexp "visit", [%here], (t : node t)]
+  ;;
 end
 
 let check_result
@@ -79,8 +92,8 @@ let check_result
 
 let sort_or_cycle
   (type node)
+  ?on_visit
   ?(traversal_order = Traversal_order.Decreasing_order_with_isolated_nodes_first)
-  ?(verbose = false)
   ?(verify = true)
   (module Node : Node with type t = node)
   ~(what : What.t)
@@ -117,13 +130,8 @@ let sort_or_cycle
        newly visited nodes added to the front of [visited] in topological order.
        [visiting] is the list of nodes with [state = Visiting]. *)
     let rec visit t ~visiting ~visited =
-      if verbose
-      then
-        eprint_s
-          [%sexp
-            "visit"
-            , [%here]
-            , { node = (t.node : Node.t); visiting : Node.t list; visited : Node.t list }];
+      Option.iter on_visit ~f:(fun on_visit ->
+        on_visit { Visit.node = t.node; visiting; visited });
       match t.state with
       | Visited -> visited
       | Visiting ->
@@ -189,8 +197,8 @@ let sort_or_cycle
 
 let sort
   (type node)
+  ?on_visit
   ?traversal_order
-  ?verbose
   ?verify
   (module Node : Node with type t = node)
   ~what
@@ -199,8 +207,8 @@ let sort
   =
   match
     sort_or_cycle
+      ?on_visit
       ?traversal_order
-      ?verbose
       ?verify
       (module Node : Node with type t = node)
       ~what

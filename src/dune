@@ -1,6 +1,6 @@
 (library
  (name topological_sort)
  (public_name topological_sort)
- (libraries base stdio)
+ (libraries base)
  (preprocess
   (pps ppx_jane -compare-require-explicit-locality)))
