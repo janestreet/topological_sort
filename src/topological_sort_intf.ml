@@ -7,7 +7,7 @@ module type%template [@mode m = (local, global)] Node = sig
   include Hashtbl.Key.S with type t := t
 end
 
-module type Topological_sort = sig
+module type Topological_sort = sig @@ portable
   module type Node = Node
 
   module Edge : sig
@@ -38,6 +38,18 @@ module type Topological_sort = sig
     [@@deriving sexp_of]
   end
 
+  (** Debugging information passed to [on_visit] each time the traversal reaches a node.
+      [visiting] is the stack of nodes whose traversal is in progress, most recent first.
+      [visited] is the nodes whose traversal has finished, in topological order. *)
+  module Visit : sig
+    type 'node t =
+      { node : 'node
+      ; visiting : 'node list
+      ; visited : 'node list
+      }
+    [@@deriving sexp_of]
+  end
+
   (** [sort (module Nodes) ~what ~nodes ~edges] returns a list of nodes [output]
       satisfying:
 
@@ -48,14 +60,16 @@ module type Topological_sort = sig
 
       [sort] returns [Error] if there is a cycle.
 
+      [on_visit], if provided, is called each time a node is visited.
+
       [traversal_order] determines the order in which we processing nodes as entry points
       into the graph.
 
       [verify] checks that the sorted output or generated cycle is indeed correct. *)
   val sort
-    :  ?traversal_order:Traversal_order.t
+    :  ?on_visit:('node Visit.t -> unit)
+    -> ?traversal_order:Traversal_order.t
          (** default is [Decreasing_order_with_isolated_nodes_first] *)
-    -> ?verbose:bool (** default is [false] *)
     -> ?verify:bool (** default is [true] *)
     -> (module Node with type t = 'node)
     -> what:What.t
@@ -65,9 +79,9 @@ module type Topological_sort = sig
 
   (** Same as [sort], but returns the cycle if there is one. *)
   val sort_or_cycle
-    :  ?traversal_order:Traversal_order.t
+    :  ?on_visit:('node Visit.t -> unit)
+    -> ?traversal_order:Traversal_order.t
          (** default is [Decreasing_order_with_isolated_nodes_first] *)
-    -> ?verbose:bool (** default is [false] *)
     -> ?verify:bool (** default is [true] *)
     -> (module Node with type t = 'node)
     -> what:What.t
